@@ -15,11 +15,11 @@ tar -zxpf base.tar.gz -C rootfs
 echo "step:# Build......."
 cp -f /etc/resolv.conf rootfs/etc/resolv.conf
 cp -f ../profile rootfs/etc/profile
-cp -f ../docker_install rootfs/bin/docker_install
 sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' rootfs/etc/apk/repositories
 chroot rootfs /sbin/apk update 
-chroot rootfs /sbin/apk add bash libstdc++
-echo "# " | sudo tee rootfs/etc/resolv.conf
+chroot rootfs /sbin/apk add bash libstdc++ docker docker-compose openrc lxc musl-dev 
+echo -e 'openrc && mkdir -p /run/openrc/ && touch /run/openrc/softlevel && service docker start' > rootfs/etc/profile.d/docker-start.sh
+echo -e '# ' | sudo tee rootfs/etc/resolv.conf
 rm -rf `find rootfs/var/cache/apk/ -type f`
 chmod +x rootfs
 
