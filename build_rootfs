@@ -1,0 +1,28 @@
+#!/bin/bash
+ALPINE_VERSION=3.13.4
+MIRRORS_URL=https://mirrors.ustc.edu.cn
+BASE_URL=$MIRRORS_URL/alpine/latest-stable/releases/x86_64/alpine-minirootfs-$ALPINE_VERSION-x86_64.tar.gz
+TEMP_DIR=build
+
+mkdir $TEMP_DIR;cd $TEMP_DIR
+
+
+echo "step:download......."
+wget -q -O base.tar.gz $BASE_URL
+mkdir rootfs
+tar -zxpf base.tar.gz -C rootfs
+
+echo "step:build......."
+cp -f ../custom/resolv.conf rootfs/etc/resolv.conf
+cp -f ../custom/profile rootfs/etc/profile
+sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' rootfs/etc/apk/repositories
+# chroot rootfs /sbin/apk update
+# chroot rootfs /sbin/apk add --no-cache bash tzdata
+rm -rf `find rootfs/var/cache/apk/ -type f`
+chmod +x rootfs
+
+echo "setp:tar......."
+tar -zcpf ../rootfs.tar.gz rootfs/*
+
+echo "step:clear......."
+rm -rf ../build
