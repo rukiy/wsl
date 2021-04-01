@@ -15,7 +15,6 @@ tar -zxpf base.tar.gz -C rootfs
 echo "step:# Build......."
 cp -f /etc/resolv.conf rootfs/etc/resolv.conf
 cp -f ../profile rootfs/etc/profile
-cp -f ../docker_install rootfs/bin/docker_install
 sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' rootfs/etc/apk/repositories
 chroot rootfs /sbin/apk update 
 chroot rootfs /sbin/apk add bash libstdc++
