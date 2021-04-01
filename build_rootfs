@@ -6,7 +6,6 @@ TEMP_DIR=build
 
 mkdir $TEMP_DIR;cd $TEMP_DIR
 
-
 echo "step:download......."
 wget -q -O base.tar.gz $BASE_URL
 mkdir rootfs
