@@ -24,8 +24,8 @@ rm -rf `find rootfs/var/cache/apk/ -type f`
 chmod +x rootfs
 
 echo "setp:# Tar......."
-cd rootfs;tar -zcpf ../../rootfs.tar.gz `ls`;cd ..;
-chown `id -un` ../rootfs.tar.gz
+cd rootfs;tar -zcpf ../../rootfs.docker.tar.gz `ls`;cd ..;
+chown `id -un` ../rootfs.docker.tar.gz
 
 echo "step:# Clear......."
 rm -rf ../$TEMP_DIR
