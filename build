@@ -29,7 +29,7 @@ echo "step:# Build Docker......."
 cp -f /etc/resolv.conf rootfs/etc/resolv.conf
 chroot rootfs /sbin/apk add docker docker-compose openrc lxc musl-dev 
 echo -e 'openrc && mkdir -p /run/openrc/ && touch /run/openrc/softlevel && service docker start' > rootfs/etc/profile.d/docker-start.sh
-sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' /etc/init.d/docker
+sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' rootfs/etc/init.d/docker
 echo "# " | tee rootfs/etc/resolv.conf
 rm -rf `find rootfs/var/cache/apk/ -type f`
 chmod +x rootfs
