@@ -18,7 +18,7 @@ cp -f ../profile rootfs/etc/profile
 sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' rootfs/etc/apk/repositories
 chroot rootfs /sbin/apk update 
 chroot rootfs /sbin/apk add bash libstdc++
-echo "# " | sudo tee rootfs/etc/resolv.conf
+echo "# " | tee rootfs/etc/resolv.conf
 rm -rf `find rootfs/var/cache/apk/ -type f`
 chmod +x rootfs
 
