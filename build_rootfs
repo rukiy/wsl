@@ -21,14 +21,18 @@ chroot rootfs /sbin/apk add bash libstdc++
 echo "# " | tee rootfs/etc/resolv.conf
 rm -rf `find rootfs/var/cache/apk/ -type f`
 chmod +x rootfs
-
 echo "setp:# Tar......."
 cd rootfs;tar -zcpf ../../rootfs.tar.gz `ls`;cd ..;
 chown `id -un` ../rootfs.tar.gz
 
-echo "setp:# Tar Docker......."
+echo "step:# Build Docker......."
+cp -f /etc/resolv.conf rootfs/etc/resolv.conf
 chroot rootfs /sbin/apk add docker docker-compose openrc lxc musl-dev 
 echo -e 'openrc && mkdir -p /run/openrc/ && touch /run/openrc/softlevel && service docker start' > rootfs/etc/profile.d/docker-start.sh
+echo "# " | tee rootfs/etc/resolv.conf
+rm -rf `find rootfs/var/cache/apk/ -type f`
+chmod +x rootfs
+echo "setp:# Tar Docker......."
 cd rootfs;tar -zcpf ../../rootfs.docker.tar.gz `ls`;cd ..;
 chown `id -un` ../rootfs.docker.tar.gz
 
