@@ -2,7 +2,7 @@
 ALPINE_VERSION=3.13.4
 MIRRORS_URL=https://mirrors.ustc.edu.cn
 BASE_URL=$MIRRORS_URL/alpine/latest-stable/releases/x86_64/alpine-minirootfs-$ALPINE_VERSION-x86_64.tar.gz
-TEMP_DIR=build
+TEMP_DIR=TEMP
 
 rm -rf $TEMP_DIR
 mkdir $TEMP_DIR;cd $TEMP_DIR
