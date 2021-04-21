@@ -10,5 +10,4 @@ for script in /etc/profile.d/*.sh ; do
         fi
 done
 
-alias ll='ls -l' 
-cd /
+alias ll='ls -l'

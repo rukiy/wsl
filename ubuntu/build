@@ -1,0 +1,34 @@
+#!/bin/bash
+VERSION=groovy
+MIRRORS_URL=https://cloud-images.ubuntu.com
+BASE_URL=$MIRRORS_URL/$VERSION/current/$VERSION-server-cloudimg-amd64-wsl.rootfs.tar.gz
+
+TEMP_DIR=UBUNTU
+rm -rf $TEMP_DIR
+mkdir $TEMP_DIR;cd $TEMP_DIR
+
+echo "step:# Download......."
+# wget -q -O base.tar.gz $BASE_URL
+cp -f ../base.tar.gz base.tar.gz
+mkdir rootfs
+tar -zxpf base.tar.gz -C rootfs
+
+cp -f /etc/resolv.conf rootfs/etc/resolv.conf
+
+tee rootfs/etc/apt/sources.list << EOF
+deb http://mirrors.aliyun.com/ubuntu/ $VERSION main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ $VERSION-security main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ $VERSION-updates main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ $VERSION-proposed main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ $VERSION-backports main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION-security main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION-updates main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed $VERSION restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports $VERSION restricted universe multiverse
+EOF
+
+
+# chroot rootfs sudo /sbin/bin/bash -c 'chmod +x /'
+chroot rootfs sudo /bin/apt update -y 
+chroot rootfs sudo /bin/apt upgrade -y
