@@ -1,0 +1,34 @@
+#!/bin/bash
+
+upgrade(){
+    echo 'step: chroot upgrade..'
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+    apk upgrade --update 
+}
+
+install_lib(){
+    echo 'step: chroot install_lib..'
+    apk --no-cache add bash libstdc++
+}
+
+install_docker(){
+    echo 'step: chroot install_docker..'
+    apk --no-cache add docker docker-compose openrc lxc musl-dev
+    echo -e 'openrc && mkdir -p /run/openrc/ && touch /run/openrc/softlevel && service docker start' > /etc/profile.d/docker-start.sh
+    sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 --registry-mirror=http:\/\/hub-mirror.c.163.com -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' /etc/init.d/docker
+}
+
+setup(){
+    echo 'step: chroot setup..'
+    sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/:/bin/ash' /etc/passwd
+    echo -e "# " -> /etc/resolv.conf
+    rm -rf `find /var/cache/apk/ -type f`
+}
+
+if [ $1 == TRUE ];then
+    upgrade
+    install_lib
+elif [ $1 == FALSE ];then
+    install_docker
+fi
+setup
