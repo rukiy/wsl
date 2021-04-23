@@ -3,32 +3,51 @@ VERSION=groovy
 MIRRORS_URL=https://cloud-images.ubuntu.com
 BASE_URL=$MIRRORS_URL/$VERSION/current/$VERSION-server-cloudimg-amd64-wsl.rootfs.tar.gz
 
-TEMP_DIR=UBUNTU
-rm -rf $TEMP_DIR
-mkdir $TEMP_DIR;cd $TEMP_DIR
 
-echo "step:# Download......."
-# wget -q -O base.tar.gz $BASE_URL
-cp -f ../base.tar.gz base.tar.gz
-mkdir rootfs
-tar -zxpf base.tar.gz -C rootfs
+download_base(){
+    echo 'step: download_base..'
+    if [ ! -d rootfs ];then
+        mkdir rootfs
+    fi
+    rm -rf rootfs/*
+    if [ ! -s *.tar.gz ];then
+        wget $BASE_URL 
+    fi
+    tar -zxpf *.tar.gz -C rootfs
+}
 
-cp -f /etc/resolv.conf rootfs/etc/resolv.conf
+build_rootfs(){
+    echo 'step: build_rootfs..'
+    cp chroot rootfs
+    chmod +x rootfs/chroot
+    cp -f /etc/resolv.conf rootfs/etc/resolv.conf
+    chmod 777 rootfs/tmp
+    chroot rootfs /bin/bash -c "sh chroot $1"
+    rm rootfs/chroot
+}
 
-tee rootfs/etc/apt/sources.list << EOF
-deb http://mirrors.aliyun.com/ubuntu/ $VERSION main restricted universe multiverse
-deb http://mirrors.aliyun.com/ubuntu/ $VERSION-security main restricted universe multiverse
-deb http://mirrors.aliyun.com/ubuntu/ $VERSION-updates main restricted universe multiverse
-deb http://mirrors.aliyun.com/ubuntu/ $VERSION-proposed main restricted universe multiverse
-deb http://mirrors.aliyun.com/ubuntu/ $VERSION-backports main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION-security main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION-updates main restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed $VERSION restricted universe multiverse
-deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports $VERSION restricted universe multiverse
-EOF
+package_rootfs(){
+    echo 'step: package_rootfs..'
+    if [ ! -d tars ];then
+        mkdir tars
+    fi
+    cd rootfs;
+    tar -zcpf ../tars/$1 `ls`
+    cd ..;
+    chown `id -un` tars/$1
+}
 
+clear(){
+    echo 'step: clear..'
+    rm -rf rootfs
+    rm *.tar.gz
+}
 
-# chroot rootfs sudo /sbin/bin/bash -c 'chmod +x /'
-chroot rootfs sudo /bin/apt update -y 
-chroot rootfs sudo /bin/apt upgrade -y
+# 构建基础rootfs
+download_base
+build_rootfs TRUE
+# package_rootfs rootfs.ubuntu.tar.gz
+# 构建包含docker rootfs
+# build_rootfs FALSE
+# package_rootfs rootfs.ubuntu.docker.tar.gz
+# clear

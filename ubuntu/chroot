@@ -1,0 +1,48 @@
+#!/bin/bash
+
+upgrade(){
+    echo 'step: chroot upgrade..'
+#     tee /etc/apt/sources.list << EOF
+# deb http://mirrors.aliyun.com/ubuntu/ $VERSION main restricted universe multiverse
+# deb http://mirrors.aliyun.com/ubuntu/ $VERSION-security main restricted universe multiverse
+# deb http://mirrors.aliyun.com/ubuntu/ $VERSION-updates main restricted universe multiverse
+# deb http://mirrors.aliyun.com/ubuntu/ $VERSION-proposed main restricted universe multiverse
+# deb http://mirrors.aliyun.com/ubuntu/ $VERSION-backports main restricted universe multiverse
+# deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION main restricted universe multiverse
+# deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION-security main restricted universe multiverse
+# deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION-updates main restricted universe multiverse
+# deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed $VERSION restricted universe multiverse
+# deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports $VERSION restricted universe multiverse
+# EOF
+    sudo apt update -y
+    sudo apt upgrade -y
+}
+
+install_lib(){
+    echo 'step: chroot install_lib..'
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    sudo add-apt-repository \
+    "deb [arch=amd64] https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/ubuntu \
+    $(lsb_release -cs) \
+    stable"
+    sudo apt update -y
+    sudo apt install -y docker-ce
+}
+
+install_docker(){
+    echo 'step: chroot install_docker..'
+
+    #sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 --registry-mirror=http:\/\/hub-mirror.c.163.com -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' /etc/init.d/docker
+}
+
+setup(){
+    echo 'step: chroot setup..'
+    sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/:/bin/bash' /etc/passwd
+    echo -e "# " -> /etc/resolv.conf
+    rm -rf `find /var/cache/ -type f`
+}
+
+
+upgrade
+install_lib
+# setup
