@@ -2,8 +2,13 @@
 
 upgrade(){
     echo 'step: chroot upgrade..'
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-    apk upgrade --update 
+        cat>/etc/apk/repositories<<EOF
+http://mirrors.aliyun.com/alpine/edge/main
+http://mirrors.aliyun.com/alpine/edge/community
+http://mirrors.aliyun.com/alpine/edge/testing
+EOF
+    # sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+    apk --no-cache upgrade --update 
 }
 
 install_lib(){
@@ -11,16 +16,27 @@ install_lib(){
     apk --no-cache add bash libstdc++
 }
 
-install_docker(){
-    echo 'step: chroot install_docker..'
-    apk --no-cache add docker docker-compose openrc lxc musl-dev
-    echo -e 'openrc && mkdir -p /run/openrc/ && touch /run/openrc/softlevel && service docker start' > /etc/profile.d/docker-start.sh
-    sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 --registry-mirror=http:\/\/hub-mirror.c.163.com -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' /etc/init.d/docker
+install_podman(){
+    echo 'step: chroot install_podman..'
+    apk --no-cache add podman
+    cp /etc/containers/registries.conf /etc/containers/registries.conf.bak
+    cat>/etc/containers/registries.conf<<EOF
+unqualified-search-registries = ['docker.io']
+
+[[registry]]
+prefix = "docker.io"
+location = "hub-mirror.c.163.com"
+
+[[registry.mirror]]
+prefix = "docker.io"
+location = "05l46sac.mirror.aliyuncs.com"
+EOF
+    # sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 --registry-mirror=http:\/\/hub-mirror.c.163.com -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' /etc/init.d/docker
 }
 
 setup(){
     echo 'step: chroot setup..'
-    sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/:/bin/ash' /etc/passwd
+    # sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/:/bin/ash' /etc/passwd
     echo -e "# " -> /etc/resolv.conf
     rm -rf `find /var/cache/apk/ -type f`
 }
@@ -29,6 +45,6 @@ if [ $1 == TRUE ];then
     upgrade
     install_lib
 elif [ $1 == FALSE ];then
-    install_docker
+    install_podman
 fi
 setup

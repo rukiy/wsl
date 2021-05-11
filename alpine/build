@@ -1,5 +1,5 @@
 #!/bin/bash
-ALPINE_VERSION=3.13.4
+ALPINE_VERSION=3.13.5
 MIRRORS_URL=https://mirrors.ustc.edu.cn
 BASE_URL=$MIRRORS_URL/alpine/latest-stable/releases/x86_64/alpine-minirootfs-$ALPINE_VERSION-x86_64.tar.gz
 
@@ -48,7 +48,7 @@ clear(){
 download_base
 build_rootfs TRUE
 package_rootfs rootfs.alpine.tar.gz
-# 构建包含docker rootfs
+# 构建包含podman rootfs
 build_rootfs FALSE
-package_rootfs rootfs.alpine.docker.tar.gz
+package_rootfs rootfs.alpine.podman.tar.gz
 clear
