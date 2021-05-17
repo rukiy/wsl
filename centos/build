@@ -1,0 +1,54 @@
+#!/bin/bash
+ALPINE_VERSION=3.13.4
+MIRRORS_URL=https://mirrors.ustc.edu.cn
+BASE_URL=$MIRRORS_URL/centos-cloud/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2cCentOS-7-x86_64-GenericCloud-2009.qcow2c
+
+
+download_base(){
+    echo 'step: download_base..'
+    if [ ! -d rootfs ];then
+        mkdir rootfs
+    fi
+    rm -rf rootfs/*
+    # if [ ! -s *.tar.gz ];then
+    #     wget $BASE_URL 
+    # fi
+    tar -zxpf *.tar.gz -C rootfs
+}
+
+build_rootfs(){
+    echo 'step: build_rootfs..'
+    cp chroot rootfs
+    chmod +x rootfs/chroot
+    cp -f /etc/resolv.conf rootfs/etc/resolv.conf
+    # cp -f profile rootfs/etc/profile
+    chmod 777 rootfs/tmp
+    chroot rootfs /bin/bash -c "sh chroot $1"
+    rm rootfs/chroot
+}
+
+package_rootfs(){
+    echo 'step: package_rootfs..'
+    if [ ! -d tars ];then
+        mkdir tars
+    fi
+    cd rootfs;
+    tar -zcpf ../tars/$1 `ls`
+    cd ..;
+    chown `id -un` tars/$1
+}
+
+clear(){
+    echo 'step: clear..'
+    rm -rf rootfs
+    rm *.tar.gz
+}
+
+# 构建基础rootfs
+download_base
+build_rootfs TRUE
+package_rootfs rootfs.centos.tar.gz
+# 构建包含docker rootfs
+# build_rootfs FALSE
+# package_rootfs rootfs.alpine.docker.tar.gz
+# clear

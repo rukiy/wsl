@@ -2,10 +2,10 @@
 ALPINE_VERSION=3.13.5
 MIRRORS_URL=https://mirrors.ustc.edu.cn
 BASE_URL=$MIRRORS_URL/alpine/latest-stable/releases/x86_64/alpine-minirootfs-$ALPINE_VERSION-x86_64.tar.gz
+TAR_NAME=rootfs.alpine.tar.gz
 
-
-download_base(){
-    echo 'step: download_base..'
+download(){
+    echo 'step: release_tar..'
     if [ ! -d rootfs ];then
         mkdir rootfs
     fi
@@ -16,26 +16,29 @@ download_base(){
     tar -zxpf *.tar.gz -C rootfs
 }
 
-build_rootfs(){
-    echo 'step: build_rootfs..'
-    cp chroot rootfs
-    chmod +x rootfs/chroot
+prepare(){
+    echo 'step: pre_build..'
+    cp -rf data/* rootfs/tmp/
     cp -f /etc/resolv.conf rootfs/etc/resolv.conf
-    cp -f profile rootfs/etc/profile
-    chmod 777 rootfs/tmp
-    chroot rootfs /bin/ash -c "sh chroot $1"
+}
+
+build(){
+    echo 'step: build_rootfs..'
+    cp chroot rootfs/chroot
+    chmod +x rootfs/chroot
+    chroot rootfs /bin/ash -c "sh chroot"
     rm rootfs/chroot
 }
 
-package_rootfs(){
+package(){
     echo 'step: package_rootfs..'
     if [ ! -d tars ];then
         mkdir tars
     fi
     cd rootfs;
-    tar -zcpf ../tars/$1 `ls`
+    tar -zcpf ../tars/$TAR_NAME `ls`
     cd ..;
-    chown `id -un` tars/$1
+    chown `id -un` tars/$TAR_NAME
 }
 
 clear(){
@@ -45,10 +48,8 @@ clear(){
 }
 
 # 构建基础rootfs
-download_base
-build_rootfs TRUE
-package_rootfs rootfs.alpine.tar.gz
-# 构建包含podman rootfs
-build_rootfs FALSE
-package_rootfs rootfs.alpine.podman.tar.gz
+download
+prepare
+build
+package
 clear

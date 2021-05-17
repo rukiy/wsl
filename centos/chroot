@@ -1,0 +1,38 @@
+#!/bin/bash
+
+upgrade(){
+    echo 'step: chroot upgrade..'
+    mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+    curl -s -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+    sed -i -e '/mirrors.cloud.aliyuncs.com/d' -e '/mirrors.aliyuncs.com/d' /etc/yum.repos.d/CentOS-Base.repo
+}
+
+install_lib(){
+    echo 'step: chroot install_lib..'
+    # yum install podman
+    # yum makecache
+}
+
+install_docker(){
+    echo 'step: chroot install_docker..'
+    echo "alias docker=podman" | tee -a /etc/bashrc
+    # apk --no-cache add docker docker-compose openrc lxc musl-dev
+    # echo -e 'openrc && mkdir -p /run/openrc/ && touch /run/openrc/softlevel && service docker start' > /etc/profile.d/docker-start.sh
+    # sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 --registry-mirror=http:\/\/hub-mirror.c.163.com -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' /etc/init.d/docker
+}
+
+setup(){
+    echo 'step: chroot setup..'
+    # sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/:/bin/bash' /etc/passwd
+    echo -e "cd /" | tee -a /etc/bashrc
+    echo -e "# " -> /etc/resolv.conf
+    # rm -rf `find /var/cache/apk/ -type f`
+}
+
+if [ $1 == TRUE ];then
+    upgrade
+    install_lib
+elif [ $1 == FALSE ];then
+    install_docker
+fi
+setup

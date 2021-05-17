@@ -11,4 +11,5 @@ for script in /etc/profile.d/*.sh ; do
 done
 
 alias ll='ls -l'
+
 alias docker=podman

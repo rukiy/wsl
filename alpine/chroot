@@ -1,22 +1,30 @@
 #!/bin/bash
-
 upgrade(){
     echo 'step: chroot upgrade..'
         cat>/etc/apk/repositories<<EOF
-http://mirrors.aliyun.com/alpine/edge/main
-http://mirrors.aliyun.com/alpine/edge/community
-http://mirrors.aliyun.com/alpine/edge/testing
+http://mirrors.ustc.edu.cn/alpine/edge/main
+http://mirrors.ustc.edu.cn/alpine/edge/community
+http://mirrors.ustc.edu.cn/alpine/edge/testing
 EOF
-    # sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+    # sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
     apk --no-cache upgrade --update 
 }
 
-install_lib(){
+library(){
     echo 'step: chroot install_lib..'
-    apk --no-cache add bash libstdc++
+    apk --no-cache add git bash libstdc++
+    echo 'step: chroot zsh..'
+    apk --no-cache add zsh
+    wget -P /root/ https://gitee.com/mirrors/oh-my-zsh/raw/master/tools/install.sh
+    chmod +x /root/install.sh
+    REMOTE=https://gitee.com/mirrors/oh-my-zsh.git RUNZSH=no sh /root/install.sh --unattended
+    git clone --depth=1 https://gitee.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+    cp -f /tmp/zsh/.zshrc /root/.zshrc
+    tar -zxpf /tmp/zsh/plugins.tar.gz -C root/.oh-my-zsh/custom/plugins
+    rm -rf /root/install.sh
 }
 
-install_podman(){
+podman(){
     echo 'step: chroot install_podman..'
     apk --no-cache add podman
     cp /etc/containers/registries.conf /etc/containers/registries.conf.bak
@@ -31,20 +39,22 @@ location = "hub-mirror.c.163.com"
 prefix = "docker.io"
 location = "05l46sac.mirror.aliyuncs.com"
 EOF
-    # sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 --registry-mirror=http:\/\/hub-mirror.c.163.com -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' /etc/init.d/docker
 }
 
 setup(){
     echo 'step: chroot setup..'
-    # sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/:/bin/ash' /etc/passwd
+    cp -f /tmp/profile /etc/profile
+    sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/root:/bin/zsh' /etc/passwd
+}
+
+clear(){
     echo -e "# " -> /etc/resolv.conf
+    rm -rf /tmp/*
     rm -rf `find /var/cache/apk/ -type f`
 }
 
-if [ $1 == TRUE ];then
-    upgrade
-    install_lib
-elif [ $1 == FALSE ];then
-    install_podman
-fi
+upgrade
+library
+podman
 setup
+clear
