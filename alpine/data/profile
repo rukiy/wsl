@@ -13,3 +13,5 @@ done
 alias ll='ls -l'
 
 alias docker=podman
+
+cd /
