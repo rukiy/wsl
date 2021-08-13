@@ -1,5 +1,5 @@
 #!/bin/bash
-ALPINE_VERSION=3.13.5
+ALPINE_VERSION=3.14.1
 MIRRORS_URL=https://mirrors.ustc.edu.cn
 BASE_URL=$MIRRORS_URL/alpine/latest-stable/releases/x86_64/alpine-minirootfs-$ALPINE_VERSION-x86_64.tar.gz
 TAR_NAME=rootfs.alpine.tar.gz

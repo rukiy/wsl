@@ -1,19 +1,19 @@
 #!/bin/bash
 upgrade(){
-    echo 'step: chroot upgrade..'
-        cat>/etc/apk/repositories<<EOF
-http://mirrors.ustc.edu.cn/alpine/edge/main
-http://mirrors.ustc.edu.cn/alpine/edge/community
-http://mirrors.ustc.edu.cn/alpine/edge/testing
-EOF
-    # sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+    echo '██████████ step: chroot upgrade..'
+#         cat>/etc/apk/repositories<<EOF
+# http://mirrors.ustc.edu.cn/alpine/edge/main
+# http://mirrors.ustc.edu.cn/alpine/edge/community
+# http://mirrors.ustc.edu.cn/alpine/edge/testing
+# EOF
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
     apk --no-cache upgrade --update 
 }
 
 library(){
-    echo 'step: chroot install_lib..'
+    echo '██████████ step: chroot install_lib..'
     apk --no-cache add git bash libstdc++
-    echo 'step: chroot zsh..'
+    echo '██████████ step: chroot zsh..'
     apk --no-cache add zsh
     wget -P /root/ https://gitee.com/mirrors/oh-my-zsh/raw/master/tools/install.sh
     chmod +x /root/install.sh
@@ -24,8 +24,26 @@ library(){
     rm -rf /root/install.sh
 }
 
+docker(){
+    apk add --no-cache docker docker-compose openrc lxc musl-dev
+    openrc
+    mkdir -p /run/openrc/
+    touch /run/openrc/softlevel
+    echo -e 'openrc && mkdir -p /run/openrc/ && touch /run/openrc/softlevel && service docker start' > /etc/profile.d/docker-start.sh
+    tee /etc/docker/daemon.json <<-'EOF'
+{
+"registry-mirrors": [
+"http://hub-mirror.c.163.com",
+"https://docker.mirrors.ustc.edu.cn",
+"https://registry.docker-cn.com"
+]
+}
+EOF
+    sed -ie 's@${DOCKER_OPTS}@-H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375 -p \\"${pidfile}\\" ${DOCKER_OPTS}@' /etc/init.d/docker
+}
+
 podman(){
-    echo 'step: chroot install_podman..'
+    echo '██████████ step: chroot install_podman..'
     apk --no-cache add podman
     cp /etc/containers/registries.conf /etc/containers/registries.conf.bak
     cat>/etc/containers/registries.conf<<EOF
@@ -42,7 +60,7 @@ EOF
 }
 
 setup(){
-    echo 'step: chroot setup..'
+    echo '██████████ step: chroot setup..'
     cp -f /tmp/profile /etc/profile
     sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/root:/bin/zsh' /etc/passwd
 }
@@ -55,6 +73,6 @@ clear(){
 
 upgrade
 library
-podman
+docker
 setup
 clear
