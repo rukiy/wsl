@@ -1,53 +1,67 @@
 #!/bin/bash
-VERSION=groovy
-MIRRORS_URL=https://cloud-images.ubuntu.com
-BASE_URL=$MIRRORS_URL/$VERSION/current/$VERSION-server-cloudimg-amd64-wsl.rootfs.tar.gz
+set -ex
+
+TAR_VERSION="focal"
+BASE_URL="http://mirrors.ustc.edu.cn/ubuntu-cloud-images/${TAR_VERSION}/current/${TAR_VERSION}-server-cloudimg-amd64-wsl.rootfs.tar.gz"
+TAR_NAME=rootfs.ubuntu.tar.gz
 
 
-download_base(){
-    echo 'step: download_base..'
+einfo() {
+	printf '\n\033[1;36m> %s\033[0m\n' "$@" >&2  # bold cyan
+}
+
+make_rootfs(){
+    einfo 'Make rootfs...'
     if [ ! -d rootfs ];then
         mkdir rootfs
     fi
     rm -rf rootfs/*
     if [ ! -s *.tar.gz ];then
-        wget $BASE_URL 
+        wget $BASE_URL
     fi
     tar -zxpf *.tar.gz -C rootfs
 }
 
-build_rootfs(){
-    echo 'step: build_rootfs..'
-    cp chroot rootfs
+prepare_chroot(){
+    einfo 'Prepare chroot...'
+    cp -rf content/* rootfs/
+    rm -f "rootfs/etc/resolv.conf"
+    cat > "rootfs/etc/resolv.conf" <<'EOF'
+nameserver 8.8.8.8
+nameserver 77.88.8.8
+nameserver 8.8.4.4
+nameserver 77.88.8.1
+EOF
+    # cp -f /etc/resolv.conf rootfs/etc/resolv.conf
+}
+
+install_chroot(){
+    einfo 'Installing chroot...'
+    cp chroot rootfs/chroot
     chmod +x rootfs/chroot
-    cp -f /etc/resolv.conf rootfs/etc/resolv.conf
-    chmod 777 rootfs/tmp
-    chroot rootfs /bin/bash -c "sh chroot $1"
+    chroot rootfs /bin/bash -c "sh chroot"
     rm rootfs/chroot
 }
 
-package_rootfs(){
-    echo 'step: package_rootfs..'
+archive_rootfs(){
+    einfo 'Creating rootfs archive...'
     if [ ! -d tars ];then
         mkdir tars
     fi
     cd rootfs;
-    tar -zcpf ../tars/$1 `ls`
+    tar -zcpf ../tars/$TAR_NAME `ls`
     cd ..;
-    chown `id -un` tars/$1
+    chown `id -un` tars/$TAR_NAME
 }
 
-clear(){
-    echo 'step: clear..'
+clean_up(){
+    einfo 'Clear Up...'
     rm -rf rootfs
     rm *.tar.gz
 }
 
-# 构建基础rootfs
-download_base
-build_rootfs TRUE
-# package_rootfs rootfs.ubuntu.tar.gz
-# 构建包含docker rootfs
-# build_rootfs FALSE
-# package_rootfs rootfs.ubuntu.docker.tar.gz
-# clear
+make_rootfs
+prepare_chroot
+install_chroot
+archive_rootfs
+clean_up

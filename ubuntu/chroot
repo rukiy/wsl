@@ -1,48 +1,80 @@
 #!/bin/bash
+set -ex
+
+readonly DOCKER_VER='20.10.8'
+
+readonly UNNECESSARY_DIRS='
+	/home /media/cdrom /media/floppy /media/usb /mnt /srv /usr/local/bin
+	/usr/local/lib /usr/local/share
+'
+
+einfo() {
+    printf '\n\033[1;31m> %s\033[0m\n' "$@" >&2  # bold red
+}
 
 upgrade(){
-    echo 'step: chroot upgrade..'
-#     tee /etc/apt/sources.list << EOF
-# deb http://mirrors.aliyun.com/ubuntu/ $VERSION main restricted universe multiverse
-# deb http://mirrors.aliyun.com/ubuntu/ $VERSION-security main restricted universe multiverse
-# deb http://mirrors.aliyun.com/ubuntu/ $VERSION-updates main restricted universe multiverse
-# deb http://mirrors.aliyun.com/ubuntu/ $VERSION-proposed main restricted universe multiverse
-# deb http://mirrors.aliyun.com/ubuntu/ $VERSION-backports main restricted universe multiverse
-# deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION main restricted universe multiverse
-# deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION-security main restricted universe multiverse
-# deb-src http://mirrors.aliyun.com/ubuntu/ $VERSION-updates main restricted universe multiverse
-# deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed $VERSION restricted universe multiverse
-# deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports $VERSION restricted universe multiverse
-# EOF
-    sudo apt update -y
-    sudo apt upgrade -y
+    einfo 'chroot: upgrade..'
+    # sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+    # apt update
+    # apt upgrade -y
 }
 
-install_lib(){
-    echo 'step: chroot install_lib..'
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    sudo add-apt-repository \
-    "deb [arch=amd64] https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/ubuntu \
-    $(lsb_release -cs) \
-    stable"
-    sudo apt update -y
-    sudo apt install -y docker-ce
+# packages(){
+#     einfo 'chroot: install packages..'
+#     apt-get install $PACKAGES_NAMES
+# }
+
+timezone() {
+    einfo 'chroot: install timezone..'
+	local timezone="Asia/Shanghai"
+	install -D /usr/share/zoneinfo/$timezone /etc/zoneinfo/$timezone
+	ln -sf /etc/zoneinfo/$timezone /etc/localtime
 }
 
-install_docker(){
-    echo 'step: chroot install_docker..'
-
-    #sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 --registry-mirror=http:\/\/hub-mirror.c.163.com -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' /etc/init.d/docker
-}
-
-setup(){
-    echo 'step: chroot setup..'
+passwd(){
+    einfo 'chroot: install passwd..'
     sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/:/bin/bash' /etc/passwd
-    echo -e "# " -> /etc/resolv.conf
-    rm -rf `find /var/cache/ -type f`
 }
 
+docker(){
+    einfo 'chroot: install docker..'
+    chmod 775 /usr/local/sbin/docker.sh
+    chmod 775 /usr/local/sbin/generate-tls-key.sh
+    mkdir -p /root
+    mkdir -p /var/lib/wsl2-docker
+    mkdir -p /usr/local/bin
+    curl -fLo docker.tgz "http://mirrors.ustc.edu.cn/docker-ce/linux/static/stable/x86_64/docker-${DOCKER_VER}.tgz"
+    tar xzf docker.tgz
+    mv docker/* /usr/local/bin/
+    rm -rf docker
+    rm docker.tgz
+    mkdir -p /etc/docker
+    tee /etc/docker/daemon.json <<-'EOF'
+{
+"registry-mirrors": [
+"http://hub-mirror.c.163.com",
+"https://docker.mirrors.ustc.edu.cn",
+"https://registry.docker-cn.com"
+]
+}
+EOF
+}
+
+clear(){
+    einfo 'chroot: clear up..'
+    apt-get autoclean
+    apt-get clean
+    apt-get autoremove
+    rm -Rf /dev/*
+    rm -Rf /tmp/*
+    echo -e "# " -> /etc/resolv.conf
+    for dir in $UNNECESSARY_DIRS; do
+        rmdir -p "$dir" 2>/dev/null || true
+    done
+}
 
 upgrade
-install_lib
-# setup
+timezone
+passwd
+docker
+clear
