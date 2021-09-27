@@ -70,12 +70,11 @@ clear(){
     echo -e "# " -> /etc/resolv.conf
     rm -Rf /dev/*
     rm -Rf /tmp/*
-    # rm -Rf /sbin/apk/*
-    # if [ -f /sbin/apk ]; then
-    rm -Rf /var/cache/apk/*
-    # else
-    rm -Rf /etc/apk /lib/apk /var/cache/apk
-    # fi
+    if [ -f /sbin/apk ]; then
+        rm -Rf /var/cache/apk/*
+    else
+        rm -Rf /etc/apk /lib/apk /var/cache/apk
+    fi
     for dir in $UNNECESSARY_DIRS; do
         rmdir -p "$dir" 2>/dev/null || true
     done
