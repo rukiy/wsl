@@ -1,38 +1,83 @@
 #!/bin/bash
+set -ex
+
+readonly DOCKER_VER='20.10.8'
+
+readonly UNNECESSARY_DIRS='
+	/home /media/cdrom /media/floppy /media/usb /mnt /srv /usr/local/bin
+	/usr/local/lib /usr/local/share
+'
+einfo() {
+    printf '\n\033[1;31m> %s\033[0m\n' "$@" >&2  # bold red
+}
 
 upgrade(){
-    echo 'step: chroot upgrade..'
-    mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
-    curl -s -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
-    sed -i -e '/mirrors.cloud.aliyuncs.com/d' -e '/mirrors.aliyuncs.com/d' /etc/yum.repos.d/CentOS-Base.repo
+    einfo 'chroot: upgrade..'
+    sed -e 's|^mirrorlist=|#mirrorlist=|g' \
+        -e 's|^#baseurl=http://mirror.centos.org|baseurl=https://mirrors.tuna.tsinghua.edu.cn|g' \
+        -i.bak \
+        /etc/yum.repos.d/CentOS-*.repo
 }
 
-install_lib(){
-    echo 'step: chroot install_lib..'
-    # yum install podman
-    # yum makecache
+packages(){
+    einfo 'chroot: install packages..'
+    mknod -m 666 /dev/random c 1 8
+    mknod -m 666 /dev/urandom c 1 9
+    yum install iptables -y
 }
 
-install_docker(){
-    echo 'step: chroot install_docker..'
-    echo "alias docker=podman" | tee -a /etc/bashrc
-    # apk --no-cache add docker docker-compose openrc lxc musl-dev
-    # echo -e 'openrc && mkdir -p /run/openrc/ && touch /run/openrc/softlevel && service docker start' > /etc/profile.d/docker-start.sh
-    # sed -i 's/${DOCKER_OPTS}/-H unix:\/\/\/var\/run\/docker.sock -H tcp:\/\/0.0.0.0:2375 --registry-mirror=http:\/\/hub-mirror.c.163.com -p \\"${pidfile}\\" ${DOCKER_OPTS}/g' /etc/init.d/docker
+
+timezone() {
+    einfo 'chroot: install timezone..'
+	local timezone="Asia/Shanghai"
+	install -D /usr/share/zoneinfo/$timezone /etc/zoneinfo/$timezone
+	ln -sf /etc/zoneinfo/$timezone /etc/localtime
 }
 
-setup(){
-    echo 'step: chroot setup..'
-    # sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/:/bin/bash' /etc/passwd
-    echo -e "cd /" | tee -a /etc/bashrc
+passwd(){
+    einfo 'chroot: install passwd..'
+    sed -i '1d' /etc/passwd;sed -i '1i\root:x:0:0:root:/:/bin/bash' /etc/passwd
+}
+
+docker(){
+    einfo 'chroot: install docker..'
+    chmod 775 /usr/local/sbin/docker.sh
+    chmod 775 /usr/local/sbin/generate-tls-key.sh
+    mkdir -p /root
+    mkdir -p /var/lib/wsl2-docker
+    mkdir -p /usr/local/bin
+    curl -fLo docker.tgz "http://mirrors.ustc.edu.cn/docker-ce/linux/static/stable/x86_64/docker-${DOCKER_VER}.tgz"
+    tar xzf docker.tgz
+    mv docker/* /usr/local/bin/
+    rm -rf docker
+    rm docker.tgz
+    mkdir -p /etc/docker
+    tee /etc/docker/daemon.json <<-'EOF'
+{
+"registry-mirrors": [
+"http://hub-mirror.c.163.com",
+"https://docker.mirrors.ustc.edu.cn",
+"https://registry.docker-cn.com"
+]
+}
+EOF
+}
+
+clear(){
+    einfo 'chroot: clear up..'
+    yum clean all
+    rm -Rf /dev/*
+    rm -Rf /tmp/*
+    rm -Rf /*.log
     echo -e "# " -> /etc/resolv.conf
-    # rm -rf `find /var/cache/apk/ -type f`
+    for dir in $UNNECESSARY_DIRS; do
+        rmdir -p "$dir" 2>/dev/null || true
+    done
 }
 
-if [ $1 == TRUE ];then
-    upgrade
-    install_lib
-elif [ $1 == FALSE ];then
-    install_docker
-fi
-setup
+upgrade
+packages
+timezone
+passwd
+docker
+clear
