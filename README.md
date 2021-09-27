@@ -1,8 +1,6 @@
-# WSL - Centos Alpine Ubuntu System rootfs
+# WSL - Alpine/Centos/Ubuntu rootfs
 
 ## 系统的rootfs 适用于 wsl子系统中运行.
-
-- `rootfs.docker.tar.gz` : 包含docker的rootfs
 
 ```sh
 git pull https://gitee.com/rukiy/wsl.git
@@ -25,6 +23,8 @@ cd centos
 cd ubuntu
 ./build
 ```
+生成
+`rootfs.xxxx.tar.gz` : 包含docker的rootfs
 
 ## 使用
 
