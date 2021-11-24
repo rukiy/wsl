@@ -3,6 +3,11 @@ set -ex
 
 readonly DOCKER_VER='20.10.8'
 
+# 清华
+readonly MIRROR='mirrors.ustc.edu.cn'
+# 阿里
+# readonly MIRROR='mirrors.aliyun.com'
+
 readonly PACKAGES_NAMES='
     curl openssl openssh-client iptables xz libstdc++ git
 '
@@ -17,7 +22,7 @@ einfo() {
 
 upgrade(){
     einfo 'chroot: upgrade..'
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+    sed -i 's/dl-cdn.alpinelinux.org/'$MIRROR'/g' /etc/apk/repositories
     apk --no-cache --update-cache upgrade --update
 }
 
@@ -47,7 +52,7 @@ docker(){
     mkdir -p /root
     mkdir -p /var/lib/wsl2-docker
     mkdir -p /usr/local/bin
-    curl -fLo docker.tgz "http://mirrors.ustc.edu.cn/docker-ce/linux/static/stable/x86_64/docker-${DOCKER_VER}.tgz"
+    curl -fLo docker.tgz "https://$MIRROR/docker-ce/linux/static/stable/x86_64/docker-${DOCKER_VER}.tgz"
     tar xzf docker.tgz
     mv docker/* /usr/local/bin/
     rm -rf docker

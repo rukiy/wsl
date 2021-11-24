@@ -3,6 +3,14 @@ set -ex
 
 readonly DOCKER_VER='20.10.8'
 
+# 网易
+readonly MIRROR='mirrors.163.com'
+# 清华
+# readonly MIRROR='mirrors.ustc.edu.cn'
+# 阿里
+# readonly MIRROR='mirrors.aliyun.com'
+
+
 readonly UNNECESSARY_DIRS='
 	/home /media/cdrom /media/floppy /media/usb /mnt /srv /usr/local/bin
 	/usr/local/lib /usr/local/share
@@ -13,10 +21,11 @@ einfo() {
 
 upgrade(){
     einfo 'chroot: upgrade..'
-    sed -e 's|^mirrorlist=|#mirrorlist=|g' \
-        -e 's|^#baseurl=http://mirror.centos.org|baseurl=https://mirrors.tuna.tsinghua.edu.cn|g' \
-        -i.bak \
-        /etc/yum.repos.d/CentOS-*.repo
+    sed -i.bak \
+    -e 's|^mirrorlist=|#mirrorlist=|' \
+    -e 's|^#baseurl=|baseurl=|' \
+    -e 's|http://mirror.centos.org|https://'$MIRROR'|' \
+    /etc/yum.repos.d/CentOS-*.repo
 }
 
 packages(){
@@ -46,7 +55,7 @@ docker(){
     mkdir -p /root
     mkdir -p /var/lib/wsl2-docker
     mkdir -p /usr/local/bin
-    curl -fLo docker.tgz "http://mirrors.ustc.edu.cn/docker-ce/linux/static/stable/x86_64/docker-${DOCKER_VER}.tgz"
+    curl -fLo docker.tgz "https://$MIRROR/docker-ce/linux/static/stable/x86_64/docker-${DOCKER_VER}.tgz"
     tar xzf docker.tgz
     mv docker/* /usr/local/bin/
     rm -rf docker

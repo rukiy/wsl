@@ -3,6 +3,13 @@ set -ex
 
 readonly DOCKER_VER='20.10.8'
 
+# 网易
+readonly MIRROR='mirrors.163.com'
+# 清华
+# readonly MIRROR='mirrors.ustc.edu.cn'
+# 阿里
+# readonly MIRROR='mirrors.aliyun.com'
+
 readonly UNNECESSARY_DIRS='
 	/home /media/cdrom /media/floppy /media/usb /mnt /srv /usr/local/bin
 	/usr/local/lib /usr/local/share
@@ -14,7 +21,8 @@ einfo() {
 
 upgrade(){
     einfo 'chroot: upgrade..'
-    # sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+    sed -i 's/archive.ubuntu.com/'$MIRROR'/g' /etc/apt/sources.list
+    sed -i 's/security.ubuntu.com/'$MIRROR'/g' /etc/apt/sources.list
     # apt update
     # apt upgrade -y
 }
@@ -43,7 +51,7 @@ docker(){
     mkdir -p /root
     mkdir -p /var/lib/wsl2-docker
     mkdir -p /usr/local/bin
-    curl -fLo docker.tgz "http://mirrors.ustc.edu.cn/docker-ce/linux/static/stable/x86_64/docker-${DOCKER_VER}.tgz"
+    curl -fLo docker.tgz "$MIRROR/docker-ce/linux/static/stable/x86_64/docker-${DOCKER_VER}.tgz"
     tar xzf docker.tgz
     mv docker/* /usr/local/bin/
     rm -rf docker
