@@ -20,7 +20,6 @@ make_rootfs(){
     fi
     xz -dk ${FILE_NAME}
     tar -xvf *.tar -C rootfs
-    rm *.tar
 }
 
 prepare_chroot(){

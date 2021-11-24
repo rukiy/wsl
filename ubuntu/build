@@ -16,7 +16,8 @@ make_rootfs(){
         mkdir rootfs
     fi
     rm -rf rootfs/*
-    if [ ! -s *.tar.gz ];then
+    FILE_NAME=${BASE_URL##*/}
+    if [ ! -s ${FILE_NAME} ];then
         wget $BASE_URL
     fi
     tar -zxpf *.tar.gz -C rootfs
@@ -57,7 +58,7 @@ archive_rootfs(){
 clean_up(){
     einfo 'Clear Up...'
     rm -rf rootfs
-    rm *.tar.gz
+    # rm *.tar.gz
 }
 
 make_rootfs
