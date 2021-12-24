@@ -1,0 +1,22 @@
+name: Github Sync
+on:
+  # 手动触发事件
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Sync Gitee To Github 
+      uses: Yikun/hub-mirror-action@master
+      with:
+        src: gitee/rukiy
+        dst: github/rukiy
+        dst_key: ${{ secrets.PRIVATE_KEY }} #SSH密钥对中的私钥，即 id_rsa
+        dst_token:  ${{ secrets.PRIVATE_TOKEN }} #Gitee账户的私人令牌
+        account_type: user
+        clone_style: "ssh"
+        debug: true
+        force_update: true 
+        static_list: 'wsl'
+        timeout: '600s'
