@@ -33,7 +33,7 @@ tars(){
 }
 
 
-alpine
+# alpine
 centos
 ubuntu
 tars
