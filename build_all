@@ -29,11 +29,13 @@ ubuntu(){
 tars(){
     mkdir -p tars
     cp -rf alpine/tars/* tars/
+    cp -rf centos/tars/* tars/
+    cp -rf ubuntu/tars/* tars/
     einfo `ls -l tars`
 }
 
 
-# alpine
+alpine
 centos
 ubuntu
 tars

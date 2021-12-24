@@ -17,7 +17,7 @@ make_rootfs(){
     fi
     rm -rf rootfs/*
     if [ ! -s *.tar.gz ];then
-        wget $BASE_URL 
+        curl -fLO $BASE_URL 
     fi
     tar -zxpf *.tar.gz -C rootfs
 }
