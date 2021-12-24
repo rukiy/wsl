@@ -1,0 +1,39 @@
+#!/bin/bash
+set -ex
+
+einfo() {
+	printf '\n\033[1;36m> %s\033[0m\n' "$@" >&2  # bold cyan
+}
+
+alpine(){
+    einfo 'Make alpine...'
+    cd alpine
+    sh build
+    cd ..
+}
+
+centos(){
+    einfo 'Make centos...'
+    cd centos
+    sh build
+    cd ..
+}
+
+ubuntu(){
+    einfo 'Make ubuntu...'
+    cd ubuntu
+    sh build
+    cd ..
+}
+
+tars(){
+    mkdir -p tars
+    cp -rf alpine/tars/* tars/
+    einfo `ls -l tars`
+}
+
+
+alpine
+centos
+ubuntu
+tars
