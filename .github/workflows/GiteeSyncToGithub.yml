@@ -1,9 +1,7 @@
 name: Sync Gitee To Github
 on:
   schedule:
-    - cron: '5 * * * *'
-
-
+    - cron: '0 1 * * *'
 
 jobs:
   build:
