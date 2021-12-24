@@ -26,16 +26,15 @@ ubuntu(){
     cd ..
 }
 
-tars(){
-    mkdir -p tars
-    cp -rf alpine/tars/* tars/
-    cp -rf centos/tars/* tars/
-    cp -rf ubuntu/tars/* tars/
-    einfo `ls -l tars`
+artifacts(){
+    mkdir -p artifacts
+    cp -rf alpine/tars/* artifacts/
+    cp -rf centos/tars/* artifacts/
+    cp -rf ubuntu/tars/* artifacts/
 }
 
 
 alpine
 centos
 ubuntu
-tars
+artifacts

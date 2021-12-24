@@ -19,7 +19,7 @@ make_rootfs(){
         curl -fLO $BASE_URL
     fi
     xz -dk ${FILE_NAME}
-    tar -xvf *.tar -C rootfs
+    tar -xf *.tar -C rootfs
 }
 
 prepare_chroot(){
