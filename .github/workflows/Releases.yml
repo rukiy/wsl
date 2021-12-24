@@ -1,8 +1,7 @@
 name: Releases
 on:
-  push:
-    branches:
-      - master
+  # 手动触发事件
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,4 +10,4 @@ jobs:
     - name: checkout 
       uses: actions/checkout@v2
     - name: build
-      run: cd alpine && sh build
+      run: sudo cd alpine && sh build

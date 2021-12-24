@@ -1,7 +1,8 @@
-name: Sync Gitee To Github
+name: GiteeToGithub
+
 on:
-  schedule:
-    - cron: '0 1 * * *'
+  # 手动触发事件
+  workflow_dispatch:
 
 jobs:
   build:
