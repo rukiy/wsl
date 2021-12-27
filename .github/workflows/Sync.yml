@@ -7,16 +7,27 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
+    - name: Get repo and time
+      id: info
+      uses: actions/github-script@v3.1
+      with:
+        result-encoding: string
+        script: |
+          core.setOutput('time', new Date(Date.now()).toISOString().replace(/[^0-9]/g, ""));
+          core.setOutput('owner', `${context.repo.owner}`);
+          core.setOutput('key',  `${context.repo.owner}-${context.repo.repo}`);
+          return context.repo.repo;
+
     - name: Sync Gitee To Github 
       uses: Yikun/hub-mirror-action@master
       with:
-        src: gitee/rukiy
-        dst: github/rukiy
+        src: gitee/${{ steps.info.outputs.owner }}
+        dst: github/${{ steps.info.outputs.owner }}
         dst_key: ${{ secrets.PRIVATE_KEY }} #SSH密钥对中的私钥，即 id_rsa
         dst_token:  ${{ secrets.PRIVATE_TOKEN }} #Gitee账户的私人令牌
         account_type: user
         clone_style: "ssh"
         debug: true
         force_update: true 
-        static_list: 'wsl'
+        static_list: ${{ steps.info.outputs.result }}
         timeout: '600s'
